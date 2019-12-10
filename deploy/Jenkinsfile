@@ -1,0 +1,48 @@
+pipeline {
+    agent  {
+        node {
+            label 'k8s-master01'
+        }
+    }
+    parameters {
+        choice(name: 'deploy',choices:'install\nupdate', description: 'deploy type')
+        choice(name: 'namespace',choices:'default\nredis\nmysql\nmonitoring', description: 'namespace')
+    }
+    options {
+        timeout(time: 100, unit: 'MINUTES')
+        retry(0)
+    }
+    stages {
+//        stage('pull code'){
+//            steps{
+//                checkout([$class: 'GitSCM', branches: [[name: '*/duweitest']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '2', url: 'http://gitlab.zhiyitech.cn/duwei/fashion-hot-ui.git']]])
+//           }
+//       }
+        stage('build code'){
+            steps{
+                sh 'source /etc/profile && npm i && npm run build'
+            }
+        }
+        stage('build image'){
+            steps{
+                sh 'docker build -t registry.cn-hangzhou.aliyuncs.com/duweidepipeline/$JOB_BASE_NAME:build$BUILD_ID -f jenkins/Dockerfile .'
+            }
+        }
+        stage('push image'){
+            steps{
+                sh 'docker push registry.cn-hangzhou.aliyuncs.com/duweidepipeline/$JOB_BASE_NAME:build$BUILD_ID'
+            }
+        }
+        stage('deploy'){
+            steps{
+                script {
+                    if ("${deploy}"=='install'){
+                        sh 'helm install -n $JOB_NAME --namespace=${namespace} --set image=registry.cn-hangzhou.aliyuncs.com/duweidepipeline/$JOB_BASE_NAME:build$BUILD_ID jenkins/'
+                    }else {
+                        sh 'helm upgrade $JOB_NAME --set image=registry.cn-hangzhou.aliyuncs.com/duweidepipeline/$JOB_BASE_NAME:build$BUILD_ID jenkins/'
+                    }
+                }
+            }
+        }
+    }
+}

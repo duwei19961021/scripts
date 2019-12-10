@@ -1,0 +1,23 @@
+replicas: 1
+
+#image: registry.cn-hangzhou.aliyuncs.com/ubuntu_baseimage/nginx:test3
+image:
+
+#Image pull policy. One of Always, Never, IfNotPresent. Defaults to IfNotPresent.
+imagePullPolicy:
+#default none
+imagePullSecrets: pipeline
+containerPort: 80
+
+#One of TCP,UDP.Defaults to TCP.
+protocol: TCP
+
+#Defualts do not limit.
+resources_limet_cpu:
+resources_limet_mem:
+resources_requests_cpu:
+resources_requests_mem:
+
+servicePort: 80
+
+ingress_host: admin.3amupupup.online

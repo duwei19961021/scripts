@@ -1,0 +1,3 @@
+Install {{.Values.deployment_name}} success!
+service: {{.Values.deployment_name}}
+ingress: {{.Values.ingress_host}}
